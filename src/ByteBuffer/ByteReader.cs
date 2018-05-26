@@ -8,25 +8,26 @@ namespace ByteBuffer
     {
         private readonly GCHandle m_handle;
         protected byte* m_buffer;
-        protected readonly int m_start;
         protected readonly int m_length;
         protected int m_index;
         protected bool m_disposed;
 
-        public int Start { get { return m_start; } }	// => m_start;
         public int Length { get { return m_length; } }	// => m_length;
-
         public int Position { get { return m_index; } }	// => m_index;
         public bool Disposed { get { return m_disposed; } }
 
         public ByteReader(byte[] buffer, int start, int length)
         {
+        	//TODO: Range checks
             m_handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
             m_buffer = (byte*)m_handle.AddrOfPinnedObject() + start;
-            m_start = start;
             m_length = length;
             m_index = 0;
             m_disposed = false;
+        }        
+        public ByteReader(byte[] buffer)
+        	: this(buffer, 0, buffer.Length)
+        {        	
         }
 
         protected byte* Advance(int count)

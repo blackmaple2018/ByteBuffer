@@ -8,6 +8,10 @@ namespace ByteBuffer
             : base(buffer, start, length)
         {
         }
+        public UnsafeByteReader(byte[] buffer)
+        	: this(buffer, 0, buffer.Length)
+        {
+        }
 
         public T Read<T>()
         {

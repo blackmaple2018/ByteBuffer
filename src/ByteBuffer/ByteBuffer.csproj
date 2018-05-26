@@ -50,6 +50,14 @@
     <Compile Include="ByteReader.cs" />
     <Compile Include="ByteWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UnsafeByteReader.cs" />
+    <Compile Include="UnsafeByteWriter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="DotNetCross.Memory.Unsafe">
+      <HintPath>Z:\Lib\DotNetCross.Memory.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
