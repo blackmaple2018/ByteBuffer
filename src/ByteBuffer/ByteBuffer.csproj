@@ -48,7 +48,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ByteReader.cs" />
-    <Compile Include="ByteUtilities.cs" />
     <Compile Include="ByteWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

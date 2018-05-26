@@ -1,101 +1,101 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+using DotNetCross.Memory;
 
 namespace ByteBuffer
 {
-    public unsafe class ByteReader
+    public unsafe class ByteReader : IDisposable
     {
-        private readonly byte[] m_buffer;
-        private readonly int m_length;
-        private readonly int m_start;
-        private int m_index;
+        private readonly GCHandle m_handle;
+        protected byte* m_buffer;
+        protected readonly int m_start;
+        protected readonly int m_length;
+        protected int m_index;
+        protected bool m_disposed;
 
-        public int Length { get { return m_length; } }	// => m_length;
         public int Start { get { return m_start; } }	// => m_start;
+        public int Length { get { return m_length; } }	// => m_length;
+
         public int Position { get { return m_index; } }	// => m_index;
+        public bool Disposed { get { return m_disposed; } }
 
         public ByteReader(byte[] buffer, int start, int length)
         {
-            //TODO: Range checks
-            m_buffer = buffer;
-            m_length = length;
+            m_handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            m_buffer = (byte*)m_handle.AddrOfPinnedObject() + start;
             m_start = start;
-            m_index = start;
+            m_length = length;
+            m_index = 0;
+            m_disposed = false;
         }
 
-        private int Advance(int count)
+        protected byte* Advance(int count)
         {
-            var idx = m_index;
+            var buf = m_buffer;
 
-            if (m_index + count > m_length || count <= 0)
+            if (count <= 0)
+                throw new ArgumentOutOfRangeException();
+
+            if (m_index + count > m_length)
                 throw new IndexOutOfRangeException();
 
+            m_buffer += count;
             m_index += count;
-            return idx;
+
+            return buf;
         }
 
         public byte ReadByte()
         {
-            return m_buffer[Advance(1)];
+            return *Advance(1);
         }
         public bool ReadBool()
         {
-            return ReadByte() != 0;
+            return *Advance(1) != 0;
         }
         public byte[] ReadBytes(int count)
         {
-            var idx = Advance(count);
+            var src = Advance(count);
             var data = new byte[count];
 
-            fixed (byte* src = m_buffer)
             fixed (byte* dst = data)
-                ByteUtilities.MemCopy(dst, src + idx, count);
+                Unsafe.CopyBlock(dst, src, (uint)count);
 
             return data;
         }
         public short ReadShort()
         {
-            short value;
-            var idx = Advance(2);
-
-            fixed (byte* ptr = &m_buffer[idx])
-                value = *(short*)ptr;
-
-            return value;
+            var src = Advance(2);
+            return Unsafe.Read<short>(src);
         }
         public int ReadInt()
         {
-            int value;
-            var idx = Advance(4);
-
-            fixed (byte* ptr = &m_buffer[idx])
-                value = *(int*)ptr;
-
-            return value;
+            var src = Advance(4);
+            return Unsafe.Read<int>(src);
         }
         public long ReadLong()
         {
-            long value;
-            var idx = Advance(8);
-
-            fixed (byte* ptr = &m_buffer[idx])
-                value = *(long*)ptr;
-
-            return value;
+            var src = Advance(8);
+            return Unsafe.Read<long>(src);
         }
         public string ReadString(int count)
         {
-            var idx = Advance(count);
-
-            fixed (byte* ptr = m_buffer)
-            {
-                var str = (sbyte*) ptr;
-                return new string(str,idx,count);
-            }
+            var src = Advance(count);
+            return new string((sbyte*)src, 0, count);
         }
-
+        
         public void Skip(int count)
         {
             Advance(count);
+        }
+
+        public void Dispose()
+        {
+            if (!m_disposed)
+            {
+                m_handle.Free();
+                m_disposed = true;
+            }
         }
     }
 }
