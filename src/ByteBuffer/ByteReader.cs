@@ -26,7 +26,7 @@ namespace ByteBuffer
         {
             var idx = m_index;
 
-            if (m_index + count > m_buffer.Length || count <= 0)
+            if (m_index + count > m_length || count <= 0)
                 throw new IndexOutOfRangeException();
 
             m_index += count;
