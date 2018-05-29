@@ -4,7 +4,7 @@ using DotNetCross.Memory;
 
 namespace ByteBuffer
 {
-    public unsafe class ByteReader : IDisposable
+    public unsafe class ByteReader : IByteReader, IDisposable
     {
         private readonly GCHandle m_handle;
         protected byte* m_buffer;
@@ -12,33 +12,44 @@ namespace ByteBuffer
         protected int m_index;
         protected bool m_disposed;
 
-        public int Length { get { return m_length; } }	// => m_length;
-        public int Position { get { return m_index; } }	// => m_index;
+        public int Length { get { return m_length; } }
+        public int Position { get { return m_index; } }
         public bool Disposed { get { return m_disposed; } }
 
         public ByteReader(byte[] buffer, int start, int length)
         {
+        	/*
+        	if(buffer == null)
+        		throw new ArgumentNullException();
+        	
+        	if(start < 0 || length <= 0)
+        		throw new ArgumentOutOfRangeException();
+        	
+        	if(buffer.Length < start || start + length > buffer.Length)
+        		throw new ArgumentOutOfRangeException();
+        	*/
+        	
         	//TODO: Range checks
             m_handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
             m_buffer = (byte*)m_handle.AddrOfPinnedObject() + start;
             m_length = length;
             m_index = 0;
             m_disposed = false;
-        }        
+        }
         public ByteReader(byte[] buffer)
         	: this(buffer, 0, buffer.Length)
-        {        	
+        {
         }
 
         protected byte* Advance(int count)
         {
-            var buf = m_buffer;
-
-            if (count <= 0)
-                throw new ArgumentOutOfRangeException();
+        	if(m_disposed)
+        		throw new ObjectDisposedException(GetType().FullName);
 
             if (m_index + count > m_length)
-                throw new IndexOutOfRangeException();
+            	throw new IndexOutOfRangeException();
+
+            var buf = m_buffer;
 
             m_buffer += count;
             m_index += count;
@@ -66,27 +77,26 @@ namespace ByteBuffer
         }
         public short ReadShort()
         {
-            var src = Advance(2);
-            return Unsafe.Read<short>(src);
+            return *(short*)Advance(2);
         }
         public int ReadInt()
         {
-            var src = Advance(4);
-            return Unsafe.Read<int>(src);
+            return *(int*)Advance(4);
         }
         public long ReadLong()
         {
-            var src = Advance(8);
-            return Unsafe.Read<long>(src);
+            return *(long*)Advance(8);
         }
         public string ReadString(int count)
         {
-            var src = Advance(count);
-            return new string((sbyte*)src, 0, count);
+            return new string((sbyte*)Advance(count), 0, count);
         }
         
         public void Skip(int count)
         {
+            if (count <= 0)
+                throw new ArgumentOutOfRangeException();
+            
             Advance(count);
         }
 

@@ -27,3 +27,5 @@ var v3 = r.Read<int>();
 
 ## References ##
  - [Memory.Unsafe](https://github.com/DotNetCross/Memory.Unsafe/)
+
+[![Built with SharpDevelop](https://raw.githubusercontent.com/icsharpcode/SharpDevelop/master/doc/BuiltWithSharpDevelop.png)](https://github.com/icsharpcode/SharpDevelop)

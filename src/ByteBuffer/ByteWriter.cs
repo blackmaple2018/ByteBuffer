@@ -3,28 +3,35 @@ using DotNetCross.Memory;
 
 namespace ByteBuffer
 {
-    public unsafe class ByteWriter
+	public unsafe class ByteWriter : IByteWriter
     {
-        public const uint DefaultBufferSize = 1024;
-
+        public static uint DefaultBufferSize = 1024;
+ 
         protected byte[] m_buffer;
-        protected uint m_size;
+        protected int m_size;
 
         /// <summary>
         /// Clear the old buffer when we resize internally
         /// so the contents doesn't stick around in memory
         /// </summary>
         public bool ClearBuffer { get; set; }
-        public uint Length { get { return m_size; } }   // => m_size;
+        public int Length { get { return m_size; } }
 
-        public ByteWriter(uint bufferSize = DefaultBufferSize)
+        public ByteWriter(uint bufferSize)
         {
+        	if(bufferSize == 0)
+        		throw new ArgumentOutOfRangeException();
+        	
             m_buffer = new byte[bufferSize];
             m_size = 0;
             ClearBuffer = false;
         }
+        public ByteWriter()
+            : this(DefaultBufferSize)
+        {
+        }
 
-        protected uint Advance(uint count)
+        protected int Advance(int count)
         {
             var idx = m_size;
             var bufferSize = m_buffer.Length;
@@ -35,18 +42,18 @@ namespace ByteBuffer
 
             if (m_buffer.Length != bufferSize)
             {
-                var newBuffer = new byte[bufferSize];
-
-                fixed (byte* src = m_buffer)
-                fixed (byte* dst = newBuffer)
+                fixed (byte* src = m_buffer)   
                 {
-                    Unsafe.CopyBlock(dst, src, m_size);
-
-                    if (ClearBuffer)
-                        Unsafe.InitBlock(src, 0, m_size);
+                	m_buffer = new byte[bufferSize];
+                	
+                	fixed (byte* dst = m_buffer)
+                	{
+	                    Unsafe.CopyBlock(dst, src, (uint)m_size);
+	
+	                    if (ClearBuffer)
+	                        Unsafe.InitBlock(src, 0, (uint)m_size);
+                	}
                 }
-
-                m_buffer = newBuffer;
             }
 
             m_size += count;
@@ -64,14 +71,25 @@ namespace ByteBuffer
             var idx = Advance(1);
             m_buffer[idx] = value ? (byte)1 : (byte)0;
         }
-        public void WriteBytes(byte[] buffer, int start, uint length)
+        public void WriteBytes(byte[] buffer, int start, int length)
         {
+        	/*
+        	if(buffer == null)
+        		throw new ArgumentNullException();
+        	
+        	if(start < 0 || length <= 0)
+        		throw new ArgumentOutOfRangeException();
+        	
+        	if(buffer.Length < start || start + length > buffer.Length)
+        		throw new ArgumentOutOfRangeException();
+        	*/
+        	
             //TODO: Range checks
             var idx = Advance(length);
 
             fixed (byte* src = buffer)
             fixed (byte* dst = m_buffer)
-                Unsafe.CopyBlock(dst + idx, src + start, length);
+            	Unsafe.CopyBlock(dst + idx, src + start, (uint)length);
         }
         public void WriteShort(short value)
         {
@@ -96,7 +114,7 @@ namespace ByteBuffer
         }
         public void WriteString(string value)
         {
-            var length = (uint)value.Length;
+            var length = value.Length;
             var idx = Advance(length);
 
             fixed (char* strPtr = value)
@@ -120,7 +138,7 @@ namespace ByteBuffer
 
             fixed (byte* src = m_buffer)
             fixed (byte* dst = newBuffer)
-                Unsafe.CopyBlock(dst, src, m_size);
+            	Unsafe.CopyBlock(dst, src, (uint)m_size);
 
             return newBuffer;
         }
