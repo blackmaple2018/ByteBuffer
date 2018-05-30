@@ -2,7 +2,6 @@
 
 namespace ByteBuffer
 {
-        	: this(buffer, 0, buffer.Length)
 	public unsafe class UnsafeByteReader : ByteReader
 	{
 		public UnsafeByteReader(byte[] buffer, int start, int length)
