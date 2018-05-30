@@ -17,8 +17,7 @@ namespace ByteBuffer
         public bool Disposed { get { return m_disposed; } }
 
         public ByteReader(byte[] buffer, int start, int length)
-        {
-        	/*
+        {        	
         	if(buffer == null)
         		throw new ArgumentNullException();
         	
@@ -26,10 +25,8 @@ namespace ByteBuffer
         		throw new ArgumentOutOfRangeException();
         	
         	if(buffer.Length < start || start + length > buffer.Length)
-        		throw new ArgumentOutOfRangeException();
-        	*/
+        		throw new ArgumentOutOfRangeException();        	
         	
-        	//TODO: Range checks
             m_handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
             m_buffer = (byte*)m_handle.AddrOfPinnedObject() + start;
             m_length = length;
