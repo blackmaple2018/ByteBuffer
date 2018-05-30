@@ -19,10 +19,15 @@ w.Write<int>(0xBADF00D);
 
 var buffer = w.GetBuffer();
 
+struct YourType
+{
+    byte v1;
+    short v2;
+    int v3;
+}
+
 var r = new UnsafeByteReader(buffer, 0, buffer.Length);
-var v1 = r.Read<byte>();
-var v2 = r.Read<short>();
-var v3 = r.Read<int>();
+var tag = r.Read<YourType>();
 ```
 
 ## References ##
